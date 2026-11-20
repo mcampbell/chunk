@@ -24,7 +24,7 @@ A finder has one method, `call(lines, line_number)`, which gives a `Range` of 1-
 | File type | Chain | Status |
 |---|---|---|
 | All files (default) | Indentation block, then paragraph | PR 3 |
-| Ruby | Prism (method, then class), then 10 lines | Planned, PR 4 |
+| Ruby | Prism (method, then class), then 10 lines | PR 4 |
 | TypeScript and JavaScript | Node `typescript` script (function, then class), then 10 lines | Planned, PR 5 |
 
 A finder that cannot read the file raises `Chunk::Scopes::Unreadable`. The file then uses the default chain, and the page shows one warning for it.[^root-egm]
