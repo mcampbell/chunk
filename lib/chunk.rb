@@ -7,6 +7,7 @@ module Chunk
 end
 
 require_relative 'chunk/git'
+require_relative 'chunk/diff_file'
 require_relative 'chunk/page'
 require_relative 'chunk/scopes'
 require_relative 'chunk/cli'

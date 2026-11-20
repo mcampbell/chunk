@@ -80,4 +80,50 @@ RSpec.describe Chunk::Git do
       expect(git(repo, 'status', '--porcelain')).to eq(before)
     end
   end
+
+  describe '#full_diff' do
+    it 'shows the whole file, not only the lines near the change' do
+      long = make_repo
+      content = (1..40).map { |n| "line #{n}\n" }.join
+      commit_file(long, 'long.txt', content)
+      git(long, 'switch', '-q', '-c', 'feature')
+      commit_file(long, 'long.txt', content.sub('line 20', 'changed 20'))
+
+      diff = described_class.new(long).full_diff('main', 'feature')
+
+      expect(diff).to include(' line 1', ' line 40', '+changed 20')
+    end
+
+    it 'leaves out changes made on the base branch after the fork' do
+      expect(reader.full_diff('main', 'feature')).not_to include('base_only.txt')
+    end
+
+    it 'keeps the standard path prefixes when the user config removes them' do
+      git(repo, 'config', 'diff.noprefix', 'true')
+
+      expect(reader.full_diff('main', 'feature')).to include('--- a/shared.txt', '+++ b/shared.txt')
+    end
+
+    it 'gives valid UTF-8 text for a file in another encoding' do
+      git(repo, 'switch', '-q', 'feature')
+      commit_file(repo, 'latin1.txt', "caf\xE9\n".b)
+      original = Encoding.default_external
+      Encoding.default_external = Encoding::US_ASCII
+
+      expect(reader.full_diff('main', 'feature')).to be_valid_encoding.and include('+caf�')
+    ensure
+      Encoding.default_external = original
+    end
+
+    it 'does not read a ref as a git option' do
+      target = File.join(repo, 'written-by-option.txt')
+
+      expect { reader.full_diff("--output=#{target}", 'feature') }.to raise_error(Chunk::Error)
+      expect(File).not_to exist(target)
+    end
+
+    it 'refuses an empty ref' do
+      expect { reader.full_diff('', 'feature') }.to raise_error(Chunk::Error, /ref/)
+    end
+  end
 end
