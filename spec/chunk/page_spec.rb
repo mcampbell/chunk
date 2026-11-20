@@ -45,12 +45,6 @@ RSpec.describe Chunk::Page do
     expect(html).not_to include('<script>alert(1)')
   end
 
-  it 'shows a diff with bytes that are not UTF-8 in place of failing' do
-    latin1 = "#{diff_text}+caf\xE9\n".b
-
-    expect(embedded_diff(page(latin1))).to include('caf�')
-  end
-
   # A shell with LANG=C makes Ruby read files as US-ASCII. The vendor script has UTF-8 bytes.
   it 'builds the page when the shell locale is not UTF-8' do
     original = Encoding.default_external

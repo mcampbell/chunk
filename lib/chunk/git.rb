@@ -14,7 +14,7 @@ module Chunk
     #
     # @param base [String] base ref, for example a branch name or a SHA
     # @param head [String] head ref
-    # @return [String] the unified diff text
+    # @return [String] the unified diff text, as valid UTF-8 (other bytes become U+FFFD)
     # @raise [Chunk::Error] when a ref is empty, or when git fails, for example on an unknown ref
     def diff(base, head)
       raise Error, 'a ref is empty' if [base, head].any? { |ref| ref.strip.empty? }
@@ -35,7 +35,7 @@ module Chunk
       out, err, status = Open3.capture3('git', '-C', @repo_path, *)
       raise Error, err.strip unless status.success?
 
-      out
+      out.force_encoding(Encoding::UTF_8).scrub
     end
   end
 end

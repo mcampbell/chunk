@@ -27,6 +27,16 @@ RSpec.describe Chunk::Git do
       expect(reader.diff('main', 'feature')).to include('--- a/shared.txt', '+++ b/shared.txt')
     end
 
+    # A Latin-1 file gives bytes that are not UTF-8. Each later step parses the text.
+    it 'gives valid UTF-8 text for a file in another encoding' do
+      git(repo, 'switch', '-q', 'feature')
+      commit_file(repo, 'latin1.txt', "caf\xE9\n".b)
+
+      diff = reader.diff('main', 'feature')
+
+      expect(diff).to be_valid_encoding.and include("+caf\uFFFD")
+    end
+
     it 'leaves out changes made on the base branch after the fork' do
       expect(reader.diff('main', 'feature')).not_to include('base_only.txt')
     end

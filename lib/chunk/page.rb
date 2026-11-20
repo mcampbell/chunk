@@ -14,11 +14,11 @@ module Chunk
     PAGE_SCRIPT = File.join(__dir__, 'page.js')
     TEMPLATE = ERB.new(File.read(File.join(__dir__, 'page.html.erb'), encoding: Encoding::UTF_8), trim_mode: '-')
 
-    # @param diff_text [String] unified diff text
+    # @param diff_text [String] unified diff text, as valid UTF-8
     # @param title [String] page title
     # @param warnings [Array<String>] lines to show above the diff
     def initialize(diff_text, title:, warnings: [])
-      @diff_text = diff_text.dup.force_encoding(Encoding::UTF_8).scrub
+      @diff_text = diff_text
       @title = title
       @warnings = warnings
     end
