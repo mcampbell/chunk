@@ -95,6 +95,18 @@ RSpec.describe Chunk::Scopes::Ruby do
     expect(Prism).to have_received(:parse).twice
   end
 
+  it 'gives the inner class for a line outside each method in a nested class' do
+    lines = "module M\n  class A\n    X = 1\n  end\nend\n".lines
+
+    expect(finder.call(lines, 3)).to eq(2..4)
+  end
+
+  it 'gives the class << self block for a line outside each method in it' do
+    lines = "class A\n  class << self\n    attr_reader :x\n  end\nend\n".lines
+
+    expect(finder.call(lines, 3)).to eq(2..4)
+  end
+
   it 'gives the method for a line in a private def' do
     lines = "class A\n  private def x\n    1\n  end\nend\n".lines
 
@@ -109,7 +121,9 @@ RSpec.describe Chunk::Scopes::Ruby do
 
   # The hunk builder calls once for each changed line, with the old and new file in turn. This took 36 s.
   it 'finds the scope of each of 20,000 changed lines in a short time' do
-    old_lines = ["class A\n", *Array.new(10_000) { "  def m#{it} = 1\n" }, "end\n", *Array.new(10_000) { "x#{it} = 1\n" }]
+    methods = Array.new(10_000) { "  def m#{it} = 1\n" }
+    statements = Array.new(10_000) { "x#{it} = 1\n" }
+    old_lines = ["class A\n", *methods, "end\n", *statements]
     new_lines = old_lines.map { it.sub('1', '2') }
     started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     (2..old_lines.size).each { |line| [old_lines, new_lines].each { finder.call(it, line) } }
