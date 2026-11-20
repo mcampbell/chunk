@@ -45,6 +45,17 @@ RSpec.describe Chunk::HunkBuilder do
     expect(build('c+c', single)).to eq("#{header.join}@@ -1,0 +2,1 @@\n+t1\n")
   end
 
+  # A formatter run or a lock file can change every line of a large file. This took 140 s before the fix.
+  it 'builds a file with 20,000 changed lines in a short time' do
+    file = Chunk::DiffFile.new(header, rows_for('-+' * 20_000))
+
+    started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    described_class.new(Chunk::Scopes::Fixed.new(10)).build(file)
+    seconds = Process.clock_gettime(Process::CLOCK_MONOTONIC) - started
+
+    expect(seconds).to be < 2
+  end
+
   context 'with a real repo' do
     let(:repo) { make_repo }
     let(:base) { (1..30).map { |n| "line #{n}\n" }.join }

@@ -4,6 +4,8 @@ module Chunk
   # Rebuilds the diff text of one file: one hunk for each merged scope of a change.
   class HunkBuilder
     MARKERS = { context: ' ', added: '+', deleted: '-' }.freeze
+    # An added row has its scope in the new file, a deleted row in the old file.
+    SIDES = { added: :new_no, deleted: :old_no }.freeze
 
     # @param finder [#call] (lines, line_number) -> Range, the scope of a change
     def initialize(finder)
@@ -14,31 +16,32 @@ module Chunk
     # @return [String] header text, then one hunk for each scope
     def build(diff_file)
       rows = diff_file.rows
-      hunks = merge(spans(diff_file)).map { |span| hunk(rows, span) }
+      lines = { old_no: diff_file.old_lines, new_no: diff_file.new_lines }
+      hunks = merge(spans(rows, lines)).map { |span| hunk(rows, span) }
       (diff_file.header + hunks).join
     end
 
     private
 
     # @return [Array<Range>] row-index span of the scope of each changed row
-    def spans(diff_file)
-      rows = diff_file.rows
+    def spans(rows, lines)
+      positions = lines.keys.to_h { |field| [field, positions(rows, field)] }
       rows.each_index.filter_map do |idx|
-        kind = rows[idx].kind
-        next if kind == :context
+        next unless (field = SIDES[rows[idx].kind])
 
-        added = kind == :added
-        field = added ? :new_no : :old_no
-        range = @finder.call(added ? diff_file.new_lines : diff_file.old_lines, rows[idx].public_send(field))
-        span(rows, field, range, idx)
+        range = @finder.call(lines[field], rows[idx].public_send(field))
+        span(rows, positions[field], field, range, idx)
       end
     end
 
-    # Rows between the range ends on one side, widened to hold the changed row.
-    def span(rows, field, range, idx)
-      first = rows.index { |row| row.public_send(field)&.>=(range.begin) }
-      last = rows.rindex { |row| row.public_send(field)&.<=(range.end) }
-      [first || idx, idx].min..[last || idx, idx].max
+    # Row indexes that have a line number on one side, in line number order, for a binary search.
+    def positions(rows, field) = rows.each_index.select { rows[it].public_send(field) }
+
+    # Rows between the range ends on one side. The span always holds the changed row, even when the finder misses it.
+    def span(rows, positions, field, range, idx)
+      first = positions.bsearch_index { rows[it].public_send(field) >= range.begin }
+      after = positions.bsearch_index { rows[it].public_send(field) > range.end } || positions.size
+      [first ? positions[first] : idx, idx].min..[after.positive? ? positions[after - 1] : idx, idx].max
     end
 
     def merge(spans)
