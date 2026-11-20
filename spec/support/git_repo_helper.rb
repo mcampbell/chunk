@@ -10,7 +10,11 @@ module GitRepoHelper
     'GIT_CONFIG_NOSYSTEM' => '1',
     'GIT_CONFIG_GLOBAL' => File::NULL,
     'GIT_AUTHOR_NAME' => 'spec', 'GIT_AUTHOR_EMAIL' => 'spec@example.com',
-    'GIT_COMMITTER_NAME' => 'spec', 'GIT_COMMITTER_EMAIL' => 'spec@example.com'
+    'GIT_COMMITTER_NAME' => 'spec', 'GIT_COMMITTER_EMAIL' => 'spec@example.com',
+    # Background maintenance after a commit writes .git/objects/maintenance.lock while the spec deletes the repo.
+    'GIT_CONFIG_COUNT' => '2',
+    'GIT_CONFIG_KEY_0' => 'maintenance.auto', 'GIT_CONFIG_VALUE_0' => 'false',
+    'GIT_CONFIG_KEY_1' => 'gc.auto', 'GIT_CONFIG_VALUE_1' => '0'
   }.freeze
 
   def make_dir
