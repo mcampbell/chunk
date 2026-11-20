@@ -52,6 +52,23 @@ RSpec.describe Chunk::Cli do
     expect(shown.minmax).to eq([24, 37])
   end
 
+  it 'shows only the method that holds a change in a Ruby file' do
+    methods = lambda { |two|
+      "class A\n  def one\n    1\n  end\n\n  def two\n    #{two}\n  end\n\n  def three\n    3\n  end\nend\n"
+    }
+    git(repo, 'switch', '-q', 'main')
+    commit_file(repo, 'a.rb', methods.call(2))
+    git(repo, 'switch', '-q', '-c', 'ruby')
+    commit_file(repo, 'a.rb', methods.call(22))
+
+    run_cli('--repo', repo, 'main', 'ruby')
+    diff = page_diff(File.read(written_path, encoding: Encoding::UTF_8))
+
+    # A context line is one space, then the line with its 2-space indent.
+    expect(diff).to include('   def two', '+    22')
+    expect(diff).not_to include('def one', 'def three')
+  end
+
   it 'shows a warning on the page for a file that its finder cannot read' do
     unreadable = ->(_, _) { raise Chunk::Scopes::Unreadable, 'parser failed' }
     stub_const('Chunk::Scopes::CHAINS', { '*.txt' => [unreadable] })

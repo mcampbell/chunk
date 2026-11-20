@@ -15,7 +15,9 @@ module Chunk
     DEFAULT_CHAIN = [Indentation.new, Paragraph.new].freeze
 
     # Basename pattern => finders, one entry for each file type. The first pattern that matches wins.
-    CHAINS = {}.freeze
+    CHAINS = {
+      '{*.rb,*.rake,*.gemspec,*.ru,Gemfile,Rakefile}' => [Ruby.new, Fixed.new(10)]
+    }.freeze
 
     # @param path [String] file path
     # @param warnings [Array<String>] receives one message on the first Unreadable
