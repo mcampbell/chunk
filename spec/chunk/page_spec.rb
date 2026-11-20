@@ -51,6 +51,16 @@ RSpec.describe Chunk::Page do
     expect(embedded_diff(page(latin1))).to include('caf�')
   end
 
+  # A shell with LANG=C makes Ruby read files as US-ASCII. The vendor script has UTF-8 bytes.
+  it 'builds the page when the shell locale is not UTF-8' do
+    original = Encoding.default_external
+    Encoding.default_external = Encoding::US_ASCII
+
+    expect(embedded_diff(page("#{diff_text}+caf\u00e9\n"))).to include("caf\u00e9")
+  ensure
+    Encoding.default_external = original
+  end
+
   it 'starts in the side-by-side view, with a switch to the inline view' do
     html = page
 
@@ -79,7 +89,7 @@ RSpec.describe Chunk::Page do
   end
 
   it 'uses a diff2html bundle that can sit inside an inline script element' do
-    script = File.read(described_class::VENDOR_SCRIPT)
+    script = File.read(described_class::VENDOR_SCRIPT, encoding: Encoding::UTF_8)
 
     expect(script).not_to match(%r{</script}i)
     expect(script).not_to match(%r{<script[\s/>]}i)

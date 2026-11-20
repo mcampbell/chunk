@@ -12,7 +12,7 @@ module Chunk
     VENDOR_STYLE = File.join(VENDOR_DIR, 'diff2html.min.css')
     PAGE_STYLE = File.join(__dir__, 'page.css')
     PAGE_SCRIPT = File.join(__dir__, 'page.js')
-    TEMPLATE = ERB.new(File.read(File.join(__dir__, 'page.html.erb')), trim_mode: '-')
+    TEMPLATE = ERB.new(File.read(File.join(__dir__, 'page.html.erb'), encoding: Encoding::UTF_8), trim_mode: '-')
 
     # @param diff_text [String] unified diff text
     # @param title [String] page title
@@ -37,6 +37,6 @@ module Chunk
     # Escape each "<" so that no text in the diff can end the script element.
     def diff_json = JSON.generate(@diff_text).gsub('<') { '\u003c' }
 
-    def read(path) = File.read(path)
+    def read(path) = File.read(path, encoding: Encoding::UTF_8)
   end
 end
