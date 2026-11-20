@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
 require_relative 'scopes/cached'
+require_relative 'scopes/by_line'
 require_relative 'scopes/fixed'
 require_relative 'scopes/paragraph'
 require_relative 'scopes/indentation'
 require_relative 'scopes/ruby'
+require_relative 'scopes/typescript'
 
 module Chunk
   # Picks the scope (line range) of a change for each file type.
@@ -16,7 +18,9 @@ module Chunk
 
     # Basename pattern => finders, one entry for each file type. The first pattern that matches wins.
     CHAINS = {
-      '{*.rb,*.rake,*.gemspec,*.ru,Gemfile,Rakefile}' => [Ruby.new, Fixed.new(10)]
+      '{*.rb,*.rake,*.gemspec,*.ru,Gemfile,Rakefile}' => [Ruby.new, Fixed.new(10)],
+      # One finder for each extension: the script picks the TypeScript or JSX syntax from it.
+      **%w[.ts .tsx .js .jsx .mjs .cjs].to_h { ["*#{it}", [Typescript.new(it), Fixed.new(10)]] }
     }.freeze
 
     # @param path [String] file path

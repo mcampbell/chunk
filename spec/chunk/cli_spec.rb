@@ -69,6 +69,26 @@ RSpec.describe Chunk::Cli do
     expect(diff).not_to include('def one', 'def three')
   end
 
+  it 'shows one warning and the indentation scope for a TypeScript file when node is not installed' do
+    source = ->(value) { "function f() {\n  if (a) {\n    g(#{value});\n  }\n}\n" }
+    git(repo, 'switch', '-q', 'main')
+    commit_file(repo, 'a.ts', source.call(1))
+    git(repo, 'switch', '-q', '-c', 'ts')
+    commit_file(repo, 'a.ts', source.call(2))
+    only_git = make_dir
+    File.symlink(Open3.capture2('which', 'git').first.strip, File.join(only_git, 'git'))
+    path = ENV.fetch('PATH')
+    ENV['PATH'] = only_git
+
+    run_cli('--repo', repo, 'main', 'ts')
+    html = File.read(written_path, encoding: Encoding::UTF_8)
+
+    expect(html.scan('a.ts: node:').size).to eq(1)
+    expect(page_diff(html)).not_to include('function f')
+  ensure
+    ENV['PATH'] = path
+  end
+
   it 'shows a warning on the page for a file that its finder cannot read' do
     unreadable = ->(_, _) { raise Chunk::Scopes::Unreadable, 'parser failed' }
     stub_const('Chunk::Scopes::CHAINS', { '*.txt' => [unreadable] })

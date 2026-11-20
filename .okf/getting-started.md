@@ -19,7 +19,7 @@ sources:
 
 # Overview
 
-chunk is a command-line diff viewer for GitHub pull requests. It writes one offline HTML page that shows a diff in the GitHub style.[^readme] The plan is that each change shows its complete function, class, or block. Status: PR 4 of 5 shows the Ruby method of a Ruby change, and the indentation block, else the paragraph, of other changes.[^root-egm]
+chunk is a command-line diff viewer for GitHub pull requests. It writes one offline HTML page that shows a diff in the GitHub style.[^readme] The plan is that each change shows its complete function, class, or block. Status: slice 1 is complete. A Ruby change shows its method, a TypeScript or JavaScript change shows its function, and other changes show their indentation block, else their paragraph.[^root-egm]
 
 # Parts
 

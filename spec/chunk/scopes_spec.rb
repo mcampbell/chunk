@@ -63,6 +63,31 @@ RSpec.describe Chunk::Scopes do
       end
     end
 
+    describe 'the TypeScript and JavaScript chain' do
+      let(:source) { "import a from 'a';\nfunction f() {\n  if (a) {\n    a();\n  }\n}\n".lines }
+
+      # Line 4 is inside an if: the indentation block is 3..5, the function is 2..6.
+      %w[a.ts b.tsx c.js d.jsx e.mjs f.cjs].each do |path|
+        it "gives the function that holds a changed line in #{path}" do
+          expect(described_class.finder_for(path, warnings).call(source, 4)).to eq(2..6)
+        end
+      end
+
+      # TypeScript syntax cannot read this JSX, so the chain must pass the .jsx extension to the script.
+      it 'reads JSX in a .jsx file' do
+        jsx = "function App() {\n  if (a) {\n    return <div>{a}</div>;\n  }\n}\n".lines
+
+        expect(described_class.finder_for('app.jsx', warnings).call(jsx, 3)).to eq(1..5)
+        expect(warnings).to be_empty
+      end
+
+      it 'gives 10 lines for a changed line outside each function and class' do
+        file = (["import a from 'a';\n"] + Array.new(30) { "let x#{it} = 1;\n" }).freeze
+
+        expect(described_class.finder_for('a.ts', warnings).call(file, 13)).to eq(3..23)
+      end
+    end
+
     describe 'the default chain' do
       let(:yaml) { "top:\n  child:\n    leaf: 1\n  other: 2\nnext: 3\n\nlast: 4\n".lines }
 
