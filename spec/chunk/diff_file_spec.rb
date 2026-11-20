@@ -138,11 +138,12 @@ RSpec.describe Chunk::DiffFile do
 
     it 'names the new path of a rename only, when the name holds " b/"' do
       file = parse_change('r b/old.rb') do
-        git(repo, 'mv', 'r b/old.rb', 'r b/new.rb')
+        # For this name, half of the "diff --git" line is not the new name, so only the rename line is correct.
+        git(repo, 'mv', 'r b/old.rb', 'r b/much-longer-name.rb')
         git(repo, 'commit', '-q', '-m', 'rename')
       end.first
 
-      expect(file.path).to eq('r b/new.rb')
+      expect(file.path).to eq('r b/much-longer-name.rb')
     end
 
     it 'names a file with only a mode change, when git quotes the name' do

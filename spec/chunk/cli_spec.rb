@@ -46,6 +46,15 @@ RSpec.describe Chunk::Cli do
     expect(shown.minmax).to eq([20, 40])
   end
 
+  it 'shows a warning on the page for a file that its finder cannot read' do
+    unreadable = ->(_, _) { raise Chunk::Scopes::Unreadable, 'parser failed' }
+    stub_const('Chunk::Scopes::CHAINS', { '*.txt' => [unreadable] })
+
+    run_cli('--repo', repo, 'main', 'feature/x')
+
+    expect(File.read(written_path, encoding: Encoding::UTF_8)).to include('a.txt: parser failed')
+  end
+
   it 'names the page after the repository and the refs, safe for a file name' do
     run_cli('--repo', repo, 'main', 'feature/x')
 
