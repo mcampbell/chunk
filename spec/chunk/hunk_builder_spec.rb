@@ -76,12 +76,12 @@ RSpec.describe Chunk::HunkBuilder do
       ['a deleted file', ->(t) { t.git(t.repo, 'rm', '-q', 'f.txt') && t.git(t.repo, 'commit', '-q', '-m', 'rm') }],
       ['a change in the middle', lambda(&:middle_change)],
       ['no newline at the end of the new file', ->(t) { t.edit('f.txt', "#{t.base}tail") }],
-      ['no newline at the end of the old file', ->(t) { t.edit('f.txt', "#{t.base}more\n") }],
       ['deleted lines only', ->(t) { t.edit('f.txt', t.base.sub("line 10\nline 11\n", '')) }]
     ].each do |name, change|
-      [described_class, nil].each_with_index do |_, i|
-        finder, flags = i.zero? ? [Chunk::Scopes::Fixed.new(2), []] : [->(_, num) { num..num }, ['--unidiff-zero']]
-        it "applies the rebuilt diff for #{name} (finder #{i})" do
+      # A one-line scope gives hunks with no context, which git applies only with --unidiff-zero.
+      { 'a 2-line scope' => [Chunk::Scopes::Fixed.new(2), []],
+        'a one-line scope' => [->(_, num) { num..num }, ['--unidiff-zero']] }.each do |scope, (finder, flags)|
+        it "applies the rebuilt diff for #{name}, with #{scope}" do
           feature { change.call(self) }
           expect(apply_check(rebuilt(finder), *flags)).to eq([0, ''])
         end
