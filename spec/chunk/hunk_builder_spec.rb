@@ -31,7 +31,13 @@ RSpec.describe Chunk::HunkBuilder do
     expect(text).to eq("#{header.join}@@ -2,1 +2,2 @@\n t1\n+t2\n@@ -8,1 +9,2 @@\n t8\n+t9\n")
   end
 
-  it 'gives one hunk when spans touch' do
+  it 'gives one hunk when spans touch, with no row between them' do
+    text = build('c++c', single)
+
+    expect(text.scan(/^@@.*$/)).to eq(['@@ -1,0 +2,2 @@'])
+  end
+
+  it 'gives one hunk when spans overlap' do
     text = build('cc+c+cc', ->(_, num) { (num - 1)..(num + 1) })
 
     expect(text.scan(/^@@.*$/)).to eq(['@@ -2,3 +2,5 @@'])

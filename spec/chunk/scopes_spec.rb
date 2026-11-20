@@ -8,16 +8,21 @@ RSpec.describe Chunk::Scopes do
   describe Chunk::Scopes::Fixed do
     subject(:fixed) { described_class.new(10) }
 
-    it 'clamps at line 1' do
+    # Line numbers are primes chosen on purpose, so an off-by-one shows in the result.
+    it 'stops at the first line of the file' do
       expect(fixed.call(lines, 3)).to eq(1..13)
     end
 
-    it 'clamps at the last line' do
-      expect(fixed.call(lines, 30)).to eq(20..30)
+    it 'stops at the last line of the file' do
+      expect(fixed.call(lines, 29)).to eq(19..30)
     end
 
-    it 'gives 10 lines each side in the middle' do
-      expect(fixed.call(lines, 15)).to eq(5..25)
+    it 'keeps 10 lines on each side in the middle of the file' do
+      expect(fixed.call(lines, 17)).to eq(7..27)
+    end
+
+    it 'keeps the whole file when the file is shorter than the scope' do
+      expect(fixed.call(lines.first(7), 3)).to eq(1..7)
     end
   end
 
@@ -39,7 +44,7 @@ RSpec.describe Chunk::Scopes do
       expect(finder([nil_finder, range_finder]).call(lines, 15)).to eq(2..4)
     end
 
-    it 'gives n..n when every finder gives nil' do
+    it 'keeps only the changed line when every finder gives nil' do
       expect(finder([nil_finder]).call(lines, 15)).to eq(15..15)
     end
 

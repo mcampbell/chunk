@@ -10,7 +10,7 @@ module Chunk
 
     DEFAULT_CHAIN = [Fixed.new(10)].freeze
 
-    # Basename pattern => finders. A later PR adds one line for each file type.
+    # Basename pattern => finders, one entry for each file type. The first pattern that matches wins.
     CHAINS = {}.freeze
 
     # @param path [String] file path
