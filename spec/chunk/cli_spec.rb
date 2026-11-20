@@ -30,7 +30,7 @@ RSpec.describe Chunk::Cli do
     status = run_cli('--repo', repo, 'main', 'feature/x')
 
     expect(status).to eq(0)
-    expect(File.read(written_path)).to include('from feature')
+    expect(File.read(written_path, encoding: Encoding::UTF_8)).to include('from feature')
     expect(opened).to eq([written_path])
   end
 
@@ -41,7 +41,7 @@ RSpec.describe Chunk::Cli do
     commit_file(repo, 'long.txt', (1..60).map { it == 30 ? "row 30 changed\n" : "row #{it}\n" }.join)
 
     run_cli('--repo', repo, 'main', 'long')
-    shown = page_diff(File.read(written_path)).lines.grep(/ row \d+$/).map { it[/\d+/].to_i }
+    shown = page_diff(File.read(written_path, encoding: Encoding::UTF_8)).lines.grep(/ row \d+$/).map { it[/\d+/].to_i }
 
     expect(shown.minmax).to eq([20, 40])
   end
@@ -57,7 +57,7 @@ RSpec.describe Chunk::Cli do
     status = Dir.chdir(repo) { run_cli('main', 'feature/x') }
 
     expect(status).to eq(0)
-    expect(File.read(written_path)).to include('from feature')
+    expect(File.read(written_path, encoding: Encoding::UTF_8)).to include('from feature')
   end
 
   it 'still succeeds when the page cannot be opened' do
