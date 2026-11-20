@@ -73,6 +73,14 @@ RSpec.describe Chunk::Scopes do
         end
       end
 
+      # TypeScript syntax cannot read this JSX, so the chain must pass the .jsx extension to the script.
+      it 'reads JSX in a .jsx file' do
+        jsx = "function App() {\n  if (a) {\n    return <div>{a}</div>;\n  }\n}\n".lines
+
+        expect(described_class.finder_for('app.jsx', warnings).call(jsx, 3)).to eq(1..5)
+        expect(warnings).to be_empty
+      end
+
       it 'gives 10 lines for a changed line outside each function and class' do
         file = (["import a from 'a';\n"] + Array.new(30) { "let x#{it} = 1;\n" }).freeze
 

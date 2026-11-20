@@ -41,7 +41,8 @@ module Chunk
         out, err, status = Open3.capture3('node', SCRIPT, "file#{@extension}", stdin_data: lines.join)
         raise Unreadable, message(utf8(err)) unless status.success?
 
-        JSON.parse(utf8(out))
+        # The JSON holds only kinds and line numbers, so it is ASCII in any shell locale.
+        JSON.parse(out)
       rescue SystemCallError => e
         raise Unreadable, "node: #{e.message}"
       rescue JSON::ParserError => e

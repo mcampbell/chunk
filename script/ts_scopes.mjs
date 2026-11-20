@@ -27,7 +27,7 @@ const kindOf = (n) => {
   const p = n.parent;
   if ((ts.isFunctionExpression(n) || ts.isArrowFunction(n)) &&
       (((ts.isVariableDeclaration(p) || ts.isPropertyDeclaration(p) || ts.isPropertyAssignment(p)) &&
-        p.initializer === n && p.name) ||
+        p.name) ||
        // module.exports.f = function () {}, or x = () => {}
        (ts.isBinaryExpression(p) && p.operatorToken.kind === ts.SyntaxKind.EqualsToken && p.right === n)))
     return "function";
