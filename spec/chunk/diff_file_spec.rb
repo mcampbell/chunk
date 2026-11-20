@@ -61,6 +61,7 @@ RSpec.describe Chunk::DiffFile do
 
     expect(file.rows).to be_empty
     expect(file.header.join).to include('Binary files')
+    expect(file.path).to eq('b.bin')
   end
 
   it 'keeps the missing final newline of the old file' do
@@ -82,6 +83,33 @@ RSpec.describe Chunk::DiffFile do
 
     expect([file.old_lines.join, file.new_lines.join]).to eq(%W[one\ntwo zero\none\ntwo])
     expect(file.rows.last).to have_attributes(kind: :context, no_newline: true, text: 'two')
+  end
+
+  describe '#path' do
+    it 'names the head path of a changed file' do
+      file = parse_change('dir/f.txt') { commit_file(repo, 'dir/f.txt', "changed\n") }.first
+
+      expect(file.path).to eq('dir/f.txt')
+    end
+
+    it 'names the base path of a deleted file' do
+      file = parse_change do
+        git(repo, 'rm', '-q', 'f.txt')
+        git(repo, 'commit', '-q', '-m', 'rm')
+      end.first
+
+      expect(file.path).to eq('f.txt')
+    end
+
+    it 'names the new path of a rename with a change' do
+      file = parse_change do
+        git(repo, 'mv', 'f.txt', 'g.rb')
+        File.write(File.join(repo, 'g.rb'), "#{base_content}six\n")
+        git(repo, 'commit', '-q', '-am', 'rename')
+      end.first
+
+      expect(file.path).to eq('g.rb')
+    end
   end
 
   it 'rebuilds a file with deleted lines only' do

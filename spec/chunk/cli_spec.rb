@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'json'
 require 'stringio'
 
 RSpec.describe Chunk::Cli do
@@ -22,12 +23,27 @@ RSpec.describe Chunk::Cli do
 
   def written_path = out.string.chomp
 
+  # The browser ends a script element at the first "</script", so read the data the same way.
+  def page_diff(html) = JSON.parse(html[%r{<script type="application/json" id="chunk-diff">(.*?)</script}m, 1])
+
   it 'writes the page for two refs, prints its path, and opens it' do
     status = run_cli('--repo', repo, 'main', 'feature/x')
 
     expect(status).to eq(0)
     expect(File.read(written_path)).to include('from feature')
     expect(opened).to eq([written_path])
+  end
+
+  it 'shows each change with 10 lines of context on each side' do
+    git(repo, 'switch', '-q', 'main')
+    commit_file(repo, 'long.txt', (1..60).map { "row #{it}\n" }.join)
+    git(repo, 'switch', '-q', '-c', 'long')
+    commit_file(repo, 'long.txt', (1..60).map { it == 30 ? "row 30 changed\n" : "row #{it}\n" }.join)
+
+    run_cli('--repo', repo, 'main', 'long')
+    shown = page_diff(File.read(written_path)).lines.grep(/ row \d+$/).map { it[/\d+/].to_i }
+
+    expect(shown.minmax).to eq([20, 40])
   end
 
   it 'names the page after the repository and the refs, safe for a file name' do

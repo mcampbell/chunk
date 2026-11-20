@@ -45,6 +45,12 @@ module Chunk
     end
     private_class_method :build_rows, :build_row
 
+    # @return [String] the head path of the file, or the base path of a deleted file
+    def path
+      line = header.find { it.start_with?('+++ b/') } || header.find { it.start_with?('--- a/') }
+      line ? line[6..].chomp : header.first[%r{ b/(.*)$}, 1]
+    end
+
     # @return [Array<String>] the lines of the merge-base file
     def old_lines = rows.reject { |row| row.kind == :added }.map(&:text)
 
