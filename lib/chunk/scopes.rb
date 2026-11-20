@@ -11,7 +11,7 @@ module Chunk
     # Raised by a finder that cannot read the file.
     class Unreadable < StandardError; end
 
-    DEFAULT_CHAIN = [Fixed.new(10)].freeze
+    DEFAULT_CHAIN = [Indentation.new, Paragraph.new].freeze
 
     # Basename pattern => finders, one entry for each file type. The first pattern that matches wins.
     CHAINS = {}.freeze

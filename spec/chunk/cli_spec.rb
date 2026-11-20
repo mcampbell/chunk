@@ -34,16 +34,22 @@ RSpec.describe Chunk::Cli do
     expect(opened).to eq([written_path])
   end
 
-  it 'shows each change with 10 lines of context on each side' do
+  # Blank lines after rows 23 and 37 (primes) make the paragraph around row 30.
+  it 'shows the paragraph that holds each change in a plain text file' do
+    rows = lambda do |changed|
+      (1..60).map do |row|
+        (row == 30 && changed ? "row 30 changed\n" : "row #{row}\n") + ([23, 37].include?(row) ? "\n" : '')
+      end.join
+    end
     git(repo, 'switch', '-q', 'main')
-    commit_file(repo, 'long.txt', (1..60).map { "row #{it}\n" }.join)
+    commit_file(repo, 'long.txt', rows.call(false))
     git(repo, 'switch', '-q', '-c', 'long')
-    commit_file(repo, 'long.txt', (1..60).map { it == 30 ? "row 30 changed\n" : "row #{it}\n" }.join)
+    commit_file(repo, 'long.txt', rows.call(true))
 
     run_cli('--repo', repo, 'main', 'long')
     shown = page_diff(File.read(written_path, encoding: Encoding::UTF_8)).lines.grep(/ row \d+$/).map { it[/\d+/].to_i }
 
-    expect(shown.minmax).to eq([20, 40])
+    expect(shown.minmax).to eq([24, 37])
   end
 
   it 'shows a warning on the page for a file that its finder cannot read' do

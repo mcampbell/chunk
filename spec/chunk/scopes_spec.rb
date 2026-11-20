@@ -36,8 +36,16 @@ RSpec.describe Chunk::Scopes do
       described_class.finder_for('a/x.rb', warnings, chains: { '*.rb' => chain })
     end
 
-    it 'uses the default chain when no pattern matches' do
-      expect(described_class.finder_for('a/x.rb', warnings).call(lines, 15)).to eq(5..25)
+    describe 'the default chain' do
+      let(:yaml) { "top:\n  child:\n    leaf: 1\n  other: 2\nnext: 3\n\nlast: 4\n".lines }
+
+      it 'gives the indentation block of a changed line in a YAML file' do
+        expect(described_class.finder_for('c.yml', warnings).call(yaml, 3)).to eq(2..3)
+      end
+
+      it 'gives the paragraph of a changed line at indentation level 0' do
+        expect(described_class.finder_for('c.yml', warnings).call(yaml, 5)).to eq(1..5)
+      end
     end
 
     it 'falls to the next finder when one gives nil' do
@@ -50,8 +58,9 @@ RSpec.describe Chunk::Scopes do
 
     it 'falls back to the default chain with one warning, even on two calls' do
       call = finder([bad_finder])
-      expect(call.call(lines, 15)).to eq(5..25)
-      expect(call.call(lines, 3)).to eq(1..13)
+      # The lines have no indentation and no blank line, so the default chain gives the whole file.
+      expect(call.call(lines, 17)).to eq(1..30)
+      expect(call.call(lines, 3)).to eq(1..30)
       expect(warnings).to eq(['a/x.rb: boom'])
     end
   end
