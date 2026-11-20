@@ -27,9 +27,10 @@ module Chunk
       return usage unless head
 
       show(write_page(Git.new(repo), base, head))
-    rescue OptionParser::ParseError
+    rescue OptionParser::ParseError => e
+      @err.puts "chunk: #{e.message}"
       usage
-    rescue Error => e
+    rescue Error, SystemCallError => e
       @err.puts "chunk: #{e.message}"
       1
     end

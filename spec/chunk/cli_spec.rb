@@ -4,7 +4,7 @@ require 'stringio'
 
 RSpec.describe Chunk::Cli do
   let(:repo) { make_repo }
-  let(:output_dir) { File.join(make_repo, 'pages') }
+  let!(:output_dir) { File.join(make_repo, 'pages') }
   let(:out) { StringIO.new }
   let(:err) { StringIO.new }
   let(:opened) { [] }
@@ -59,15 +59,47 @@ RSpec.describe Chunk::Cli do
     expect(opened).to be_empty
   end
 
-  it 'shows the usage for a wrong argument count' do
-    status = run_cli('main')
+  it 'fails with the git message for a path that is not a repository' do
+    expect(run_cli('--repo', File.join(output_dir, 'missing'), 'main', 'feature/x')).to eq(1)
+    expect(err.string).to start_with('chunk: ')
+  end
 
-    expect(status).to eq(2)
+  context 'when the output directory cannot be made' do
+    let(:output_dir) do
+      blocker = File.join(make_repo, 'a-file')
+      File.write(blocker, '')
+      File.join(blocker, 'pages')
+    end
+
+    it 'fails with a short message and no stack trace' do
+      expect(run_cli('--repo', repo, 'main', 'feature/x')).to eq(1)
+      expect(err.string).to match(/\Achunk: .*File exists/)
+    end
+  end
+
+  it 'fails with a short message and no stack trace when git is not installed' do
+    path = ENV.fetch('PATH')
+    ENV['PATH'] = Dir.mktmpdir('no-git')
+
+    expect(run_cli('--repo', repo, 'main', 'feature/x')).to eq(1)
+    expect(err.string).to match(/\Achunk: .*git/)
+  ensure
+    ENV['PATH'] = path
+  end
+
+  it 'shows the usage for a wrong argument count' do
+    expect(run_cli('main')).to eq(2)
+    expect(run_cli('main', 'feature/x', 'extra')).to eq(2)
     expect(err.string).to include('Usage: chunk')
   end
 
-  it 'shows the usage for an unknown option' do
+  it 'names the unknown option, then shows the usage' do
     expect(run_cli('--nope', 'main', 'feature/x')).to eq(2)
-    expect(err.string).to include('Usage: chunk')
+    expect(err.string).to include('invalid option: --nope').and include('Usage: chunk')
+  end
+
+  it 'names the option that has no value, then shows the usage' do
+    expect(run_cli('main', 'feature/x', '--repo')).to eq(2)
+    expect(err.string).to include('missing argument: --repo').and include('Usage: chunk')
   end
 end
