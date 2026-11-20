@@ -7,3 +7,4 @@ module Chunk
 end
 
 require_relative 'chunk/git'
+require_relative 'chunk/page'

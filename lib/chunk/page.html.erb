@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title><%= h(@title) %></title>
+  <style><%= read(VENDOR_STYLE) %></style>
+  <style><%= read(PAGE_STYLE) %></style>
+</head>
+<body>
+  <header class="chunk-header">
+    <h1><%= h(@title) %></h1>
+<%- unless empty? -%>
+    <button type="button" id="chunk-view-switch">Show inline</button>
+<%- end -%>
+  </header>
+<%- @warnings.each do |warning| -%>
+  <p class="chunk-warning"><%= h(warning) %></p>
+<%- end -%>
+<%- if empty? -%>
+  <p class="chunk-empty">No changes</p>
+<%- else -%>
+  <main id="chunk-diff-view" data-format="side-by-side"></main>
+  <script type="application/json" id="chunk-diff"><%= diff_json %></script>
+  <script><%= read(VENDOR_SCRIPT) %></script>
+  <script><%= read(PAGE_SCRIPT) %></script>
+<%- end -%>
+</body>
+</html>
