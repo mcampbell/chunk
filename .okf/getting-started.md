@@ -19,12 +19,14 @@ sources:
 
 # Overview
 
-chunk is a command-line diff viewer for GitHub pull requests. It writes one offline HTML page that shows a diff in the GitHub style.[^readme] The plan is that each change shows its complete function, class, or block. Status: PR 1 of 5 shows the git default context (3 lines).[^root-egm]
+chunk is a command-line diff viewer for GitHub pull requests. It writes one offline HTML page that shows a diff in the GitHub style.[^readme] The plan is that each change shows its complete function, class, or block. Status: PR 2 of 5 shows 10 lines of context on each side of each change.[^root-egm]
 
 # Parts
 
 - [chunk command](/components/chunk-command.md) - `bin/chunk`, arguments, exit status, output file.
 - [Merge-base diff](/components/merge-base-diff.md) - `Chunk::Git`, the diff from the merge base.
+- [Hunk builder](/components/hunk-builder.md) - `Chunk::DiffFile` and `Chunk::HunkBuilder`, the rows and the new hunks.
+- [Scope finders](/components/scope-finders.md) - `Chunk::Scopes`, the line range of each change.
 - [Offline diff page](/components/offline-diff-page.md) - `Chunk::Page`, the HTML with inline diff2html.
 
 [^readme]: chunk README

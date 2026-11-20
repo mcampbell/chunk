@@ -4,7 +4,7 @@
 
 The page works offline. A button changes the view between side by side and inline.
 
-Status: the page shows the git default context (3 lines). Later versions show the complete function, class, or block of each change.
+Status: each change shows 10 lines of context on each side, and the changes near each other join into one hunk. Later versions show the complete function, class, or block of each change.
 
 ## Requirements
 

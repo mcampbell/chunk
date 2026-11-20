@@ -43,6 +43,13 @@ module Chunk
       [repo, *refs] if refs.size == 2
     end
 
+    # Each change shows its scope (for example its function), in place of the git default of 3 lines.
+    def scoped_diff(git, base, head, warnings)
+      DiffFile.parse(git.full_diff(base, head)).map do |file|
+        HunkBuilder.new(Scopes.finder_for(file.path, warnings)).build(file)
+      end.join
+    end
+
     def show(path)
       @out.puts path
       @err.puts "chunk: could not open #{path}" unless @opener.call(path)
@@ -59,7 +66,9 @@ module Chunk
       dir = @env.fetch('CHUNK_OUTPUT_DIR', File.join(Dir.home, 'tmp', 'chunk'))
       path = File.join(dir, "#{[name, base, head].map { |part| part.gsub(/[^A-Za-z0-9._-]/, '-') }.join('-')}.html")
       FileUtils.mkdir_p(dir)
-      File.write(path, Page.new(git.diff(base, head), title: "#{name} #{base}...#{head}").to_html)
+      warnings = []
+      diff = scoped_diff(git, base, head, warnings)
+      File.write(path, Page.new(diff, title: "#{name} #{base}...#{head}", warnings:).to_html)
       path
     end
   end

@@ -2,17 +2,25 @@
 
 ## Overview
 
-The code of the `chunk` command. `Cli` reads the arguments, `Git` gets the diff, and `Page` writes the HTML.
+The code of the `chunk` command. `Cli` reads the arguments. `Git` gets the full-file diff. `DiffFile` parses it into rows. For each changed row, `Scopes` picks a line range, and `HunkBuilder` keeps only those rows. `Page` writes the HTML.
 
 ## Interface
 
 - `Chunk::Cli.new(argv, env: ENV, out: $stdout, err: $stderr, opener: ...).run` - gives the exit status (0, 1, or 2). `opener` gets the page path. A falsy result prints "could not open" and still gives 0. A `Chunk::Error` or a `SystemCallError` (no `git`, an output directory it cannot write) prints `chunk: <message>` and gives 1. A bad option prints the OptionParser message and the usage, and gives 2.
 - `Chunk::Git.new(repo_path).diff(base, head)` - the diff text of `git diff BASE...HEAD`, as valid UTF-8. Raises `Chunk::Error` for an empty or blank ref, and with the git stderr text when git fails.
+- `Chunk::Git.new(repo_path).full_diff(base, head)` - the same diff as `diff`, with each line of each changed file as context (`--unified=999999`).
 - `Chunk::Git.new(repo_path).toplevel` - the top directory of the repository.
+- `Chunk::DiffFile.parse(text)` - one `DiffFile` for each file: `header` (exact git header lines), `rows` (`Row`: `kind`, `old_no`, `new_no`, `text`, `no_newline`), `old_lines`, `new_lines`, and `path` (head path, or base path for a deleted file; git C-style quotes are removed, and the tab that git adds after a name with a space is dropped; a mode-only or rename-only file takes its name from the `rename to` line, or from the second half of the `diff --git` line). A binary, rename-only, or mode-only file has no rows.
+- `Chunk::Scopes.finder_for(path, warnings)` - a callable `(lines, line_number) -> Range` for the file type. `Chunk::Scopes::Fixed.new(n)` keeps n lines on each side. A finder raises `Chunk::Scopes::Unreadable` when it cannot read the file.
+- `Chunk::HunkBuilder.new(finder).build(diff_file)` - the diff text of one file, with one hunk for each merged scope.
 - `Chunk::Page.new(diff_text, title:, warnings: []).to_html` - one HTML document. An empty diff shows "No changes".
 - `Chunk::Error` - a failure the user must see. `Cli` prints it and gives 1.
 
 ## Invariants
+
+- `HunkBuilder`: an added row uses the new file, and a deleted row uses the old file. Spans that overlap or touch merge into one hunk. A hunk side with no lines starts at the line before it (0 when none). The rebuilt diff applies with `git apply --check` at the merge base (specs check this). A file with no rows passes through unchanged. It builds each line array once, and finds each span end with a binary search: 20,000 changed lines take about 0.1 s (a spec checks under 2 s).
+- `DiffFile`: a last line with no newline keeps its `\r`, so a Windows file rebuilds exactly.
+- `Scopes.finder_for`: the first non-nil range of the chain wins. All nil gives the changed line only. On `Unreadable`, it adds one warning (`<path>: <message>`) and uses the default chain. Default chain (PR 2): 10 lines on each side.
 
 - `Git` passes `--end-of-options` before the refs, so a ref can never be read as a git option.
 - `Git` runs only read commands (`diff`, `rev-parse`). It starts `git` with an argument array, never through a shell.

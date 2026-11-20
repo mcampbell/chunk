@@ -17,7 +17,7 @@ sources:
 
 # Overview
 
-`bin/chunk [--repo PATH] BASE HEAD` calls `Chunk::Cli`. It gets the [merge-base diff](/components/merge-base-diff.md), builds the [offline diff page](/components/offline-diff-page.md), writes it to `~/tmp/chunk/<repo>-<base>-<head>.html`, prints the path, and opens it with `open`.[^readme]
+`bin/chunk [--repo PATH] BASE HEAD` calls `Chunk::Cli`. It gets the [merge-base diff](/components/merge-base-diff.md), keeps the [scope](/components/scope-finders.md) of each change with the [hunk builder](/components/hunk-builder.md), builds the [offline diff page](/components/offline-diff-page.md), writes it to `~/tmp/chunk/<repo>-<base>-<head>.html`, prints the path, and opens it with `open`.[^readme]
 
 # Interface
 
