@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'scopes/fixed'
+require_relative 'scopes/paragraph'
 
 module Chunk
   # Picks the scope (line range) of a change for each file type.
