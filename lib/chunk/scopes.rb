@@ -4,6 +4,7 @@ require_relative 'scopes/cached'
 require_relative 'scopes/fixed'
 require_relative 'scopes/paragraph'
 require_relative 'scopes/indentation'
+require_relative 'scopes/ruby'
 
 module Chunk
   # Picks the scope (line range) of a change for each file type.
