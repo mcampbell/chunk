@@ -4,12 +4,12 @@
 
 Command-line diff viewer for GitHub pull requests (PRs). It writes one HTML file that shows a diff the way GitHub does, but with more context: each change shows the complete function, class, indentation block, or paragraph that holds it. Ruby 3.4.
 
-Status (2026-11-20): PR 1 of 5. The page shows the git default context (3 lines). The scope rules under Invariants are planned for PRs 2 to 5. Design docs are in `tmp/`, which git ignores.
+Status (2026-11-20): PR 2 of 5. Each change shows 10 lines of context on each side. The scope rules under Invariants are planned for PRs 3 to 5. Design docs are in `tmp/`, which git ignores.
 
 ## Subdirectories & Boundaries
 
 - bin (no EGM.md) - `bin/chunk`, the command. It only calls `Chunk::Cli`.
-- lib/chunk: [./lib/chunk/EGM.md](./lib/chunk/EGM.md) - git access, HTML page, command. Planned: hunk builder, scope finders.
+- lib/chunk: [./lib/chunk/EGM.md](./lib/chunk/EGM.md) - git access, diff parser, scope finders, hunk builder, HTML page, command.
 - script (planned) - Node script that finds function and class ranges in TypeScript and JavaScript.
 - vendor/diff2html: [./vendor/diff2html/EGM.md](./vendor/diff2html/EGM.md) - diff2html CSS and JavaScript. Each HTML file holds a copy.
 - spec (no EGM.md) - RSpec specs. `spec/support/git_repo_helper.rb` makes throw-away git repositories.
@@ -23,7 +23,7 @@ Status (2026-11-20): PR 1 of 5. The page shows the git default context (3 lines)
 
 - The diff goes from the merge base to the head (`git diff BASE...HEAD`), as GitHub PR diffs do.
 - The tool never changes the working tree or the index. It only reads git objects.
-- Context for each changed line (planned, PRs 2 to 5):
+- Context for each changed line (planned, PRs 3 to 5):
   - Ruby: the innermost method. If none, the innermost class or module. If none, 10 lines.
   - TypeScript and JavaScript: the innermost function. If none, the innermost class. If none, 10 lines.
   - Other files, and files the parser cannot read: the indentation block. If none, or at indentation level 0, the paragraph between blank lines.

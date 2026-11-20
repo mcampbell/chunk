@@ -17,7 +17,7 @@ sources:
 
 # Overview
 
-`Chunk::Git.new(repo_path).diff(base, head)` runs `git diff BASE...HEAD`. A pull request diff on GitHub also starts at the merge base, so changes made only on the base branch after the fork do not show.[^github-compare] The [chunk command](/components/chunk-command.md) uses it.
+`Chunk::Git.new(repo_path).diff(base, head)` runs `git diff BASE...HEAD`. A pull request diff on GitHub also starts at the merge base, so changes made only on the base branch after the fork do not show.[^github-compare] `full_diff(base, head)` gives the same diff with each line of each changed file as context, for the [hunk builder](/components/hunk-builder.md). The [chunk command](/components/chunk-command.md) uses it.
 
 # Rules
 
