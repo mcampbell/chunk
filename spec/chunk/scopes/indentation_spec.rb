@@ -106,4 +106,14 @@ RSpec.describe Chunk::Scopes::Indentation do
   it 'works with lines that have no newline' do
     expect(finder.call(['a:', '  b', 'c'], 2)).to eq(1..2)
   end
+
+  # A large file can change on every line, and the hunk builder calls the finder once for each line.
+  it 'finds the scope of each of 20,000 changed lines in one block in a short time' do
+    lines = ["root:\n"] + (1..20_000).map { "  key#{it}: value\n" }
+    started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    (2..lines.size).each { finder.call(lines, it) }
+
+    expect(Process.clock_gettime(Process::CLOCK_MONOTONIC) - started).to be < 2
+    expect(finder.call(lines, 20_001)).to eq(1..20_001)
+  end
 end

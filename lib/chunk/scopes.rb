@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative 'scopes/cached'
 require_relative 'scopes/fixed'
 require_relative 'scopes/paragraph'
 require_relative 'scopes/indentation'

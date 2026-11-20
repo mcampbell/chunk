@@ -41,4 +41,14 @@ RSpec.describe Chunk::Scopes::Paragraph do
   it 'gives nil when every line is blank' do
     expect(paragraph.call(%W[\n \n], 2)).to be_nil
   end
+
+  # A large file can change on every line, and the hunk builder calls the finder once for each line.
+  it 'finds the scope of each of 20,000 changed lines in one block in a short time' do
+    lines = (1..20_000).map { "key#{it}: value\n" }
+    started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    (2..lines.size).each { paragraph.call(lines, it) }
+
+    expect(Process.clock_gettime(Process::CLOCK_MONOTONIC) - started).to be < 2
+    expect(paragraph.call(lines, 20_000)).to eq(1..20_000)
+  end
 end
