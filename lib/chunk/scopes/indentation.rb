@@ -14,11 +14,11 @@ module Chunk
 
       # @param lines [Array<String>] the file lines
       # @param line_number [Integer] 1-based changed line
-      # @return [Range, nil] 1-based line numbers, nil at indentation level 0 or with no header
+      # @return [Range, nil] 1-based line numbers, nil for a line with no header (a level-0 line that is not a closing line)
       def call(lines, line_number)
         data = cached(lines) { analyze(lines) }
         base = base_index(data.levels, line_number - 1)
-        header = base && data.levels[base].positive? && header_index(lines, data, base)
+        header = base && header_index(lines, data, base)
         block(lines, data, header) if header
       end
 

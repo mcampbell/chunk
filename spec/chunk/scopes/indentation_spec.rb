@@ -91,6 +91,13 @@ RSpec.describe Chunk::Scopes::Indentation do
     expect(finder.call(json, 4)).to eq(2..4)
   end
 
+  # A file with no parser, such as Go: the closing brace of a function at level 0 shows the function.
+  it 'gives the block of a changed closing line at indentation level 0' do
+    go = lines_of("package a\n\nfunc f() {\n\tx()\n}\n")
+
+    expect(finder.call(go, 5)).to eq(3..5)
+  end
+
   it 'leaves out a sibling YAML key named end' do
     expect(finder.call(lines_of("server:\n  port: 80\nend: 1\n"), 2)).to eq(1..2)
   end
