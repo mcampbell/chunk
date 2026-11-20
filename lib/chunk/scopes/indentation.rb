@@ -4,7 +4,7 @@ module Chunk
   module Scopes
     # Finder: the block of the nearest less-indented line above the changed line.
     class Indentation
-      CLOSERS = %r{\A(end|\}|\]|\)|</)}
+      CLOSERS = /\A(end\b|[}\])]|<\/)/
 
       # @param lines [Array<String>] the file lines
       # @param line_number [Integer] 1-based changed line

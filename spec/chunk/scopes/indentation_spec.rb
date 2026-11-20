@@ -51,6 +51,13 @@ RSpec.describe Chunk::Scopes::Indentation do
     expect(finder.call(lines_of("def a\n  x\n  y\nend\nz\n"), 2)).to eq(1..4)
   end
 
+  # A YAML key such as "endpoint:" is the next sibling, not the end of the block.
+  it 'leaves out a sibling line that only starts with the letters of end' do
+    lines = lines_of("server:\n  port: 80\nendpoint: /api\n")
+
+    expect(finder.call(lines, 2)).to eq(1..2)
+  end
+
   it 'includes a closing bracket and a closing parenthesis' do
     expect(finder.call(lines_of("a = [\n  1,\n]\nb\n"), 2)).to eq(1..3)
     expect(finder.call(lines_of("a(\n  1,\n)\nb\n"), 2)).to eq(1..3)
