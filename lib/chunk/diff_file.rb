@@ -28,12 +28,15 @@ module Chunk
       numbers = [0, 0]
       lines.each do |line|
         if (hunk = HUNK.match(line)) then numbers = [hunk[1].to_i, hunk[2].to_i]
-        elsif line.start_with?('\\') then rows[-1] = rows.last.with(no_newline: true, text: rows.last.text.chomp)
+        elsif line.start_with?('\\') then rows[-1] = without_newline(rows.last)
         else rows << build_row(line, numbers)
         end
       end
       rows
     end
+
+    # Only the newline goes: a Windows line keeps its carriage return.
+    def self.without_newline(row) = row.with(no_newline: true, text: row.text.delete_suffix("\n"))
 
     # Reads one row, and moves the line numbers on by it.
     def self.build_row(line, numbers)
@@ -43,7 +46,7 @@ module Chunk
       numbers[1] += 1 unless kind == :deleted
       Row.new(kind, (old_no unless kind == :added), (new_no unless kind == :deleted), line[1..], false)
     end
-    private_class_method :build_rows, :build_row
+    private_class_method :build_rows, :build_row, :without_newline
 
     # Git C-style escapes in a quoted name (core.quotePath).
     ESCAPES = { 'a' => "\a", 'b' => "\b", 't' => "\t", 'n' => "\n", 'v' => "\v", 'f' => "\f", 'r' => "\r" }.freeze

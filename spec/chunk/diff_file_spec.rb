@@ -137,6 +137,13 @@ RSpec.describe Chunk::DiffFile do
     end
   end
 
+  # A Windows file keeps its carriage returns, also on a last line that has no newline.
+  it 'keeps the carriage return of a last line with no newline' do
+    file = parse_change(base: "a\r\nb\r") { commit_file(repo, 'f.txt', "a\r\nc\r") }.first
+
+    expect([file.old_lines.join, file.new_lines.join]).to eq(["a\r\nb\r", "a\r\nc\r"])
+  end
+
   it 'rebuilds a file with deleted lines only' do
     file = parse_change { commit_file(repo, 'f.txt', "one\nfive\n") }.first
 
