@@ -56,12 +56,24 @@ module Chunk
       # The a/ and b/ prefixes come from Chunk::Git#diff_args. /dev/null has neither.
       line = header.find { it.match?(%r{\A\+\+\+ "?b/}) } || header.find { it.match?(%r{\A--- "?a/}) }
       # Git adds a tab after a name with a space.
-      name = line ? line[4..].chomp.delete_suffix("\t") : header.first.chomp[%r{ ("b/.*"|b/.*)\z}, 1].to_s
-      unquote(name).sub(%r{\A[ab]/}, '')
+      return unquote(line[4..].chomp.delete_suffix("\t")).sub(%r{\A[ab]/}, '') if line
+
+      header_path
     end
 
     private
 
+    # A mode change or a rename with no content change has no --- or +++ line. With no rename, both
+    # names in "diff --git a/NAME b/NAME" match, so the second half of the line is the name.
+    def header_path
+      renamed = header.find { it.start_with?('rename to ') }
+      return unquote(renamed.chomp.delete_prefix('rename to ')) if renamed
+
+      names = header.first.chomp.delete_prefix('diff --git ')
+      unquote(names[((names.size + 1) / 2)..]).sub(%r{\A[ab]/}, '')
+    end
+
+    # Bytes that are not UTF-8 become U+FFFD, so such a path only names the file; it does not open it.
     def unquote(name)
       return name unless name.start_with?('"')
 

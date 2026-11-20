@@ -126,6 +126,34 @@ RSpec.describe Chunk::DiffFile do
       expect(file.path).to eq("caf\u00e9.bin")
     end
 
+    # A mode change or a rename with no content change has no --- or +++ line.
+    it 'names a file with only a mode change, when the name holds " b/"' do
+      file = parse_change('x b/y.rb') do
+        File.chmod(0o755, File.join(repo, 'x b/y.rb'))
+        git(repo, 'commit', '-q', '-am', 'mode')
+      end.first
+
+      expect(file.path).to eq('x b/y.rb')
+    end
+
+    it 'names the new path of a rename only, when the name holds " b/"' do
+      file = parse_change('r b/old.rb') do
+        git(repo, 'mv', 'r b/old.rb', 'r b/new.rb')
+        git(repo, 'commit', '-q', '-m', 'rename')
+      end.first
+
+      expect(file.path).to eq('r b/new.rb')
+    end
+
+    it 'names a file with only a mode change, when git quotes the name' do
+      file = parse_change("caf\u00e9 b/z.rb") do
+        File.chmod(0o755, File.join(repo, "caf\u00e9 b/z.rb"))
+        git(repo, 'commit', '-q', '-am', 'mode')
+      end.first
+
+      expect(file.path).to eq("caf\u00e9 b/z.rb")
+    end
+
     it 'names the new path of a rename with a change' do
       file = parse_change do
         git(repo, 'mv', 'f.txt', 'g.rb')
