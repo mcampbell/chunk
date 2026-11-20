@@ -7,7 +7,8 @@ module Chunk
     module Cached
       private
 
-      # @param lines [Array<String>] the file lines; the same array object gives the cached result
+      # @param lines [Array<String>] the file lines; the same array object gives the cached result, so a
+      #   caller must not change the array after the first call (Chunk::HunkBuilder builds each array once)
       # @return [Object] the result of the block for these lines
       def cached(lines)
         @cache ||= {}.compare_by_identity
