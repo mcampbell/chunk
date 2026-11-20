@@ -19,7 +19,8 @@ module Chunk
     def diff(base, head)
       raise Error, 'a ref is empty' if [base, head].any? { |ref| ref.strip.empty? }
 
-      run('diff', '--no-color', '--no-ext-diff', '--no-textconv', '--end-of-options', "#{base}...#{head}")
+      run('diff', '--no-color', '--no-ext-diff', '--no-textconv', '--src-prefix=a/', '--dst-prefix=b/',
+          '--end-of-options', "#{base}...#{head}")
     end
 
     # @return [String] path of the top directory of the repository

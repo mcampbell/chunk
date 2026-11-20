@@ -20,6 +20,13 @@ RSpec.describe Chunk::Git do
       expect(diff).to include('+from feature')
     end
 
+    # diff2html and the hunk builder read the "a/" and "b/" path prefixes.
+    it 'keeps the standard path prefixes when the user config removes them' do
+      git(repo, 'config', 'diff.noprefix', 'true')
+
+      expect(reader.diff('main', 'feature')).to include('--- a/shared.txt', '+++ b/shared.txt')
+    end
+
     it 'leaves out changes made on the base branch after the fork' do
       expect(reader.diff('main', 'feature')).not_to include('base_only.txt')
     end
