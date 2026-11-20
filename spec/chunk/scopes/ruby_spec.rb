@@ -94,4 +94,26 @@ RSpec.describe Chunk::Scopes::Ruby do
 
     expect(Prism).to have_received(:parse).twice
   end
+
+  it 'gives the method for a line in a private def' do
+    lines = "class A\n  private def x\n    1\n  end\nend\n".lines
+
+    expect(finder.call(lines, 3)).to eq(2..4)
+  end
+
+  it 'gives nil for a line in the data after __END__' do
+    lines = "def x\n  1\nend\n__END__\ndata\n".lines
+
+    expect(finder.call(lines, 5)).to be_nil
+  end
+
+  # The hunk builder calls once for each changed line, with the old and new file in turn. This took 36 s.
+  it 'finds the scope of each of 20,000 changed lines in a short time' do
+    old_lines = ["class A\n", *Array.new(10_000) { "  def m#{it} = 1\n" }, "end\n", *Array.new(10_000) { "x#{it} = 1\n" }]
+    new_lines = old_lines.map { it.sub('1', '2') }
+    started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    (2..old_lines.size).each { |line| [old_lines, new_lines].each { finder.call(it, line) } }
+
+    expect(Process.clock_gettime(Process::CLOCK_MONOTONIC) - started).to be < 2
+  end
 end
