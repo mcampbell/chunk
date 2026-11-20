@@ -5,3 +5,5 @@ module Chunk
   # Raised for a failure that the user must see, for example a git error.
   class Error < StandardError; end
 end
+
+require_relative 'chunk/git'
