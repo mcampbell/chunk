@@ -23,8 +23,7 @@ A finder has one method, `call(lines, line_number)`, which gives a `Range` of 1-
 
 | File type | Chain | Status |
 |---|---|---|
-| All files (default) | 10 lines on each side (`Fixed.new(10)`) | PR 2 |
-| All files (default) | Indentation block, then paragraph | Planned, PR 3 |
+| All files (default) | Indentation block, then paragraph | PR 3 |
 | Ruby | Prism (method, then class), then 10 lines | Planned, PR 4 |
 | TypeScript and JavaScript | Node `typescript` script (function, then class), then 10 lines | Planned, PR 5 |
 

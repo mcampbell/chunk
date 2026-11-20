@@ -4,7 +4,7 @@
 
 The page works offline. A button changes the view between side by side and inline.
 
-Status: each change shows 10 lines of context on each side, and the changes near each other join into one hunk. Later versions show the complete function, class, or block of each change.
+Status: each change shows the indentation block that holds it, for example the parent key in YAML or the CSS rule. A change at indentation level 0 shows its paragraph (the lines between blank lines). Changes near each other join into one hunk. Later versions show the complete Ruby method and the complete TypeScript or JavaScript function.
 
 ## Requirements
 
