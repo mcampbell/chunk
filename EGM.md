@@ -4,7 +4,7 @@
 
 Command-line diff viewer for GitHub pull requests (PRs). It writes one HTML file that shows a diff the way GitHub does, but with more context: each change shows the complete function, class, indentation block, or paragraph that holds it. Ruby 3.4.
 
-Status (2026-11-20): PR 3 of 5. Each change shows its indentation block, else its paragraph. The Ruby and TypeScript rules under Invariants are planned for PRs 4 and 5. Design docs are in `tmp/`, which git ignores.
+Status (2026-11-20): PR 4 of 5. A Ruby change shows its method. Other changes show their indentation block, else their paragraph. The TypeScript and JavaScript rule under Invariants is planned for PR 5. Design docs are in `tmp/`, which git ignores.
 
 ## Subdirectories & Boundaries
 
@@ -24,7 +24,7 @@ Status (2026-11-20): PR 3 of 5. Each change shows its indentation block, else it
 - The diff goes from the merge base to the head (`git diff BASE...HEAD`), as GitHub PR diffs do.
 - The tool never changes the working tree or the index. It only reads git objects.
 - Context for each changed line:
-  - Ruby (planned, PR 4): the innermost method. If none, the innermost class or module. If none, 10 lines.
+  - Ruby: the innermost method. If none, the innermost class or module. If none, 10 lines.
   - TypeScript and JavaScript (planned, PR 5): the innermost function. If none, the innermost class. If none, 10 lines.
   - Other files, and files the parser cannot read: the indentation block. If none, or at indentation level 0, the paragraph between blank lines.
 - The HTML file works offline. All CSS and JavaScript are inside it.

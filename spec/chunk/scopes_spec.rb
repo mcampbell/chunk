@@ -36,6 +36,33 @@ RSpec.describe Chunk::Scopes do
       described_class.finder_for('a/x.rb', warnings, chains: { '*.rb' => chain })
     end
 
+    describe 'the Ruby chain' do
+      # Line 4 is inside an if: the indentation block is 3..5, the method is 2..6.
+      let(:ruby) { "class A\n  def two\n    if x\n      2\n    end\n  end\nend\n".lines }
+
+      %w[app/a.rb lib/tasks/x.rake chunk.gemspec config.ru Gemfile Rakefile].each do |path|
+        it "gives the method that holds a changed line in #{path}" do
+          expect(described_class.finder_for(path, warnings).call(ruby, 4)).to eq(2..6)
+        end
+      end
+
+      it 'uses the default chain with one warning for a Ruby file with a syntax error' do
+        # Two missing ends. The indentation block of line 3 is 2..3.
+        broken = "class A\n  def one\n    1\n".lines
+        finder = described_class.finder_for('a.rb', warnings)
+
+        expect([finder.call(broken, 3), finder.call(broken, 3)]).to eq([2..3, 2..3])
+        expect(warnings.size).to eq(1)
+        expect(warnings.first).to start_with('a.rb: ')
+      end
+
+      it 'gives 10 lines for a changed line outside each method and class' do
+        file = (["require 'x'\n"] + Array.new(30) { "x = #{it}\n" }).freeze
+
+        expect(described_class.finder_for('a.rb', warnings).call(file, 13)).to eq(3..23)
+      end
+    end
+
     describe 'the default chain' do
       let(:yaml) { "top:\n  child:\n    leaf: 1\n  other: 2\nnext: 3\n\nlast: 4\n".lines }
 
