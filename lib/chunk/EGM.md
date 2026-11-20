@@ -19,7 +19,7 @@ The code of the `chunk` command. `Cli` reads the arguments, `Git` gets the diff,
 - `Git` turns off color, external diff tools, and textconv, so the diff matches GitHub.
 - `Git` refuses an empty ref, because git reads `...HEAD` as `HEAD...HEAD` and gives a wrong diff with no error.
 - `Git` pins the `a/` and `b/` path prefixes, so a user `diff.noprefix` or `diff.mnemonicPrefix` setting does not change the diff text.
-- `Git` gives valid UTF-8: it replaces each byte that is not UTF-8 with U+FFFD, so a Latin-1 file does not stop a later step.
+- `Git` gives valid UTF-8, in the diff and in its error messages: it replaces each byte that is not UTF-8 with U+FFFD, so a Latin-1 file or a `LANG=C` shell does not stop a later step.
 - `Page` escapes each `<` in the embedded diff data as `\u003c`, so no diff text can end the script element.
 - `Page` reads its inlined files as UTF-8, so a shell with `LANG=C` still gives a page.
 - `Page` holds all CSS and JavaScript inline: `vendor/diff2html`, `page.css`, and `page.js`.
