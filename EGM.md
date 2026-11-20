@@ -4,13 +4,13 @@
 
 Command-line diff viewer for GitHub pull requests (PRs). It writes one HTML file that shows a diff the way GitHub does, but with more context: each change shows the complete function, class, indentation block, or paragraph that holds it. Ruby 3.4.
 
-Status (2026-11-20): PR 4 of 5. A Ruby change shows its method. Other changes show their indentation block, else their paragraph. The TypeScript and JavaScript rule under Invariants is planned for PR 5. Design docs are in `tmp/`, which git ignores.
+Status (2026-11-20): slice 1 complete (PR 5 of 5). Slice 2 (a PR link as input, and links to GitHub lines) is next. Design docs are in `tmp/`, which git ignores.
 
 ## Subdirectories & Boundaries
 
 - bin (no EGM.md) - `bin/chunk`, the command. It only calls `Chunk::Cli`.
 - lib/chunk: [./lib/chunk/EGM.md](./lib/chunk/EGM.md) - git access, diff parser, scope finders, hunk builder, HTML page, command.
-- script (planned) - Node script that finds function and class ranges in TypeScript and JavaScript.
+- script: [./script/EGM.md](./script/EGM.md) - Node script that finds function and class ranges in TypeScript and JavaScript.
 - vendor/diff2html: [./vendor/diff2html/EGM.md](./vendor/diff2html/EGM.md) - diff2html CSS and JavaScript. Each HTML file holds a copy.
 - spec (no EGM.md) - RSpec specs. `spec/support/git_repo_helper.rb` makes throw-away git repositories.
 
@@ -25,7 +25,7 @@ Status (2026-11-20): PR 4 of 5. A Ruby change shows its method. Other changes sh
 - The tool never changes the working tree or the index. It only reads git objects.
 - Context for each changed line:
   - Ruby: the innermost method. If none, the innermost class or module. If none, 10 lines.
-  - TypeScript and JavaScript (planned, PR 5): the innermost function. If none, the innermost class. If none, 10 lines.
+  - TypeScript and JavaScript: the innermost function. If none, the innermost class. If none, 10 lines.
   - Other files, and files the parser cannot read: the indentation block. If none, or at indentation level 0, the paragraph between blank lines.
 - The HTML file works offline. All CSS and JavaScript are inside it.
 - The tool keeps no credentials. It uses the auth of `git` and `gh`.
@@ -33,7 +33,7 @@ Status (2026-11-20): PR 4 of 5. A Ruby change shows its method. Other changes sh
 ## Side Effects
 
 - Writes one HTML file under `~/tmp/chunk/`.
-- Starts `git` and `open`. Planned: `node` (PR 5).
+- Starts `git`, `open`, and `node` (one time for each changed TypeScript or JavaScript file, for the old and the new file).
 
 ## Verification
 

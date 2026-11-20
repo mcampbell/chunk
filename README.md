@@ -4,13 +4,14 @@
 
 The page works offline. A button changes the view between side by side and inline.
 
-Status: a change in a Ruby file shows the complete method that holds it, else the class, else 10 lines on each side. A change in another file shows the indentation block that holds it, for example the parent key in YAML or the CSS rule, else its paragraph (the lines between blank lines). Changes near each other join into one hunk. A later version shows the complete TypeScript or JavaScript function.
+Status: a change in a Ruby file shows the complete method that holds it, else the class, else 10 lines on each side. A change in another file shows the indentation block that holds it, for example the parent key in YAML or the CSS rule, else its paragraph (the lines between blank lines). Changes near each other join into one hunk. A change in a TypeScript or JavaScript file shows the complete function that holds it, else the class, else 10 lines. An anonymous callback, such as `items.map(x => ...)`, is part of the function around it.
 
 ## Requirements
 
 - Ruby 3.4 or later
 - git 2.24 or later (for `--end-of-options`)
 - macOS `open`, to open the page
+- Node 22 or later, and `npm ci` in this repository, for the TypeScript and JavaScript scope. Without them, those files use the indentation scope, and the page shows a warning.
 
 ## Usage
 
@@ -39,6 +40,7 @@ The command reads git objects only. It does not change your working tree or your
 
 ```sh
 bundle install
+npm ci
 bundle exec rspec
 bundle exec rubocop
 ```
