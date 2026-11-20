@@ -29,6 +29,12 @@ RSpec.describe Chunk::Git do
         .to raise_error(Chunk::Error, /no-such-branch/)
     end
 
+    # Git reads "...feature" as "HEAD...feature", so an empty ref would give a wrong diff with no error.
+    it 'refuses an empty ref' do
+      expect { reader.diff('', 'feature') }.to raise_error(Chunk::Error, /ref/)
+      expect { reader.diff('main', " \t") }.to raise_error(Chunk::Error, /ref/)
+    end
+
     it 'does not read a ref as a git option' do
       target = File.join(repo, 'written-by-option.txt')
 

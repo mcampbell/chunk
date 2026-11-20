@@ -15,8 +15,10 @@ module Chunk
     # @param base [String] base ref, for example a branch name or a SHA
     # @param head [String] head ref
     # @return [String] the unified diff text
-    # @raise [Chunk::Error] when git fails, for example on an unknown ref
+    # @raise [Chunk::Error] when a ref is empty, or when git fails, for example on an unknown ref
     def diff(base, head)
+      raise Error, 'a ref is empty' if [base, head].any? { |ref| ref.strip.empty? }
+
       run('diff', '--no-color', '--no-ext-diff', '--no-textconv', '--end-of-options', "#{base}...#{head}")
     end
 
