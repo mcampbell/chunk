@@ -6,7 +6,8 @@ module Chunk
     class Indentation
       include Cached
 
-      CLOSERS = /\A(end\b|[}\])]|<\/)/
+      # A YAML key such as end: or endpoint: is not a closer.
+      CLOSERS = /\A(end(?![\w:])|[}\])]|<\/)/
       # levels: indentation of each line, nil for a blank line. parents: index of the header of each
       # line. ends: index of the last line of each block, filled when first asked.
       Analysis = Data.define(:levels, :parents, :ends)
@@ -17,11 +18,18 @@ module Chunk
       def call(lines, line_number)
         data = cached(lines) { analyze(lines) }
         base = base_index(data.levels, line_number - 1)
-        header = base && data.levels[base].positive? && data.parents[base]
+        header = base && data.levels[base].positive? && header_index(lines, data, base)
         block(lines, data, header) if header
       end
 
       private
+
+      # A closing line belongs to the block it closes: its header is the nearest line above at its level.
+      def header_index(lines, data, base)
+        return data.parents[base] unless lines[base].strip.match?(CLOSERS)
+
+        (base - 1).downto(0).find { data.levels[it] && data.levels[it] <= data.levels[base] } || data.parents[base]
+      end
 
       def block(lines, data, header)
         (header + 1)..((data.ends[header] ||= block_end(lines, data.levels, header)) + 1)
@@ -57,7 +65,10 @@ module Chunk
         (header...(stop || levels.size)).reverse_each.find { levels[it] }
       end
 
-      def indent(line) = line[/\A[ \t]*/].chars.sum { it == "\t" ? 8 : 1 }
+      # A tab moves to the next multiple of 8 columns.
+      def indent(line)
+        line[/\A[ \t]*/].each_char.reduce(0) { |column, char| char == "\t" ? ((column / 8) + 1) * 8 : column + 1 }
+      end
     end
   end
 end

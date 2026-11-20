@@ -5,7 +5,7 @@ require 'spec_helper'
 RSpec.describe Chunk::Scopes::Paragraph do
   subject(:paragraph) { described_class.new }
 
-  # Line numbers are primes chosen on purpose, so an off-by-one shows in the result.
+  # Paragraphs of 3, 4, and 4 lines, so an off-by-one at either end shows in the result.
   let(:lines) { %W[a\n b\n c\n \n d\n e\n f\n g\n \n h\n i\n j\n k\n] }
 
   it 'starts at the first line of the file for the first paragraph' do

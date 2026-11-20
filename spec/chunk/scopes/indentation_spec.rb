@@ -71,12 +71,36 @@ RSpec.describe Chunk::Scopes::Indentation do
     expect(finder.call(lines_of("a:\n\tb:\n\t\tc\n  d\ne\n"), 3)).to eq(2..3)
   end
 
-  it 'counts a tab as 8 columns' do
-    expect(finder.call(lines_of("a:\n\tb\n        c\ne\n"), 2)).to eq(1..3)
+  # With a tab as 1 column, "\tc" would be less indented than "    b:" and give 1..3.
+  it 'counts a leading tab as 8 columns' do
+    expect(finder.call(lines_of("a:\n    b:\n\tc\n"), 3)).to eq(2..3)
   end
 
+  it 'moves a tab after spaces to the next tab stop' do
+    expect(finder.call(lines_of("a:\n        b: 1\n    \tc: 2\n"), 3)).to eq(1..3)
+  end
+
+  # The line above is in the block of x, the line below is at level 0, so only the rule below gives nil.
   it 'uses the next non-blank line for a blank changed line' do
-    expect(finder.call(lines_of("a:\n  b\n\n  c\nd\n"), 3)).to eq(1..4)
+    expect(finder.call(lines_of("x:\n  b: 1\n\ny:\n  c: 2\n"), 3)).to be_nil
+  end
+
+  it 'gives the block that a changed closing line closes' do
+    json = lines_of("{\n  \"a\": {\n    \"x\": 1\n  },\n  \"b\": 2\n}\n")
+
+    expect(finder.call(json, 4)).to eq(2..4)
+  end
+
+  it 'leaves out a sibling YAML key named end' do
+    expect(finder.call(lines_of("server:\n  port: 80\nend: 1\n"), 2)).to eq(1..2)
+  end
+
+  it 'gives the parent key block for an item of a YAML list' do
+    expect(finder.call(lines_of("items:\n  - one\n  - two\nnext: 1\n"), 3)).to eq(1..3)
+  end
+
+  it 'reads lines that end in a carriage return and a newline' do
+    expect(finder.call(lines_of("a:\r\n  b: 1\r\nc: 2\r\n"), 2)).to eq(1..2)
   end
 
   it 'uses the nearest non-blank line above for a blank line at the end of the file' do
