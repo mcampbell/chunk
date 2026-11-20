@@ -1,0 +1,12 @@
+AllCops:
+  TargetRubyVersion: 3.4
+  NewCops: enable
+  SuggestExtensions: false
+  Exclude:
+    - "tmp/**/*"
+    - "vendor/**/*"
+    - "node_modules/**/*"
+
+Metrics/BlockLength:
+  Exclude:
+    - "spec/**/*"

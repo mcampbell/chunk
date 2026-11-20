@@ -4,25 +4,26 @@
 
 Command-line diff viewer for GitHub pull requests (PRs). It writes one HTML file that shows a diff the way GitHub does, but with more context: each change shows the complete function, class, indentation block, or paragraph that holds it. Ruby 3.4.
 
-Status (2026-11-20): design only. The repository has no code yet. Each directory below is planned. Design docs are in `tmp/`, which git ignores.
+Status (2026-11-20): PR 1 of 5. The page shows the git default context (3 lines). The scope rules under Invariants are planned for PRs 2 to 5. Design docs are in `tmp/`, which git ignores.
 
 ## Subdirectories & Boundaries
 
-- bin (planned) - `bin/chunk`, the command.
-- lib/chunk (planned) - git access, hunk builder, scope finders, HTML page.
+- bin (no EGM.md) - `bin/chunk`, the command. It only calls `Chunk::Cli`.
+- lib/chunk: [./lib/chunk/EGM.md](./lib/chunk/EGM.md) - git access, HTML page, command. Planned: hunk builder, scope finders.
 - script (planned) - Node script that finds function and class ranges in TypeScript and JavaScript.
-- vendor/diff2html (planned) - diff2html CSS and JavaScript. Each HTML file holds a copy.
-- spec (planned) - RSpec specs.
+- vendor/diff2html: [./vendor/diff2html/EGM.md](./vendor/diff2html/EGM.md) - diff2html CSS and JavaScript. Each HTML file holds a copy.
+- spec (no EGM.md) - RSpec specs. `spec/support/git_repo_helper.rb` makes throw-away git repositories.
 
 ## Interface
 
-- `bin/chunk [--repo PATH] BASE HEAD` (planned) - writes `~/tmp/chunk/<repo>-<base>-<head>.html`, prints the path, and opens the file with `open`.
+- `bin/chunk [--repo PATH] BASE HEAD` - writes `~/tmp/chunk/<repo>-<base>-<head>.html`, prints the path, and opens the file with `open`. `--repo` defaults to the current directory. Exit status: 0 success (also when `open` fails), 1 error (git, or the file system), 2 wrong usage. See `README.md`.
+- `CHUNK_OUTPUT_DIR` - the directory for the page, in place of `~/tmp/chunk`.
 
 ## Invariants
 
 - The diff goes from the merge base to the head (`git diff BASE...HEAD`), as GitHub PR diffs do.
 - The tool never changes the working tree or the index. It only reads git objects.
-- Context for each changed line:
+- Context for each changed line (planned, PRs 2 to 5):
   - Ruby: the innermost method. If none, the innermost class or module. If none, 10 lines.
   - TypeScript and JavaScript: the innermost function. If none, the innermost class. If none, 10 lines.
   - Other files, and files the parser cannot read: the indentation block. If none, or at indentation level 0, the paragraph between blank lines.
@@ -32,8 +33,9 @@ Status (2026-11-20): design only. The repository has no code yet. Each directory
 ## Side Effects
 
 - Writes one HTML file under `~/tmp/chunk/`.
-- Starts `git`, `node`, and `open`.
+- Starts `git` and `open`. Planned: `node` (PR 5).
 
 ## Verification
 
-- Run all specs (planned): `bundle exec rspec`
+- Run all specs: `bundle exec rspec`
+- Lint: `bundle exec rubocop`
