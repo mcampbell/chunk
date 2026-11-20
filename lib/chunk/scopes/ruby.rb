@@ -7,6 +7,7 @@ module Chunk
     # Finder: the innermost method, else the innermost class or module, that holds the line.
     class Ruby
       include Cached
+      include ByLine
 
       CONTAINERS = [Prism::ClassNode, Prism::ModuleNode, Prism::SingletonClassNode].freeze
       # For each line number: the innermost method range, and the innermost class or module range.
@@ -43,13 +44,6 @@ module Chunk
           stack.concat(node.compact_child_nodes)
         end
         [defs, containers]
-      end
-
-      # Larger ranges first, so the innermost range is the last one written for each line.
-      def by_line(ranges, size)
-        ranges.sort_by { -it.size }.each_with_object(Array.new(size + 1)) do |range, result|
-          range.each { result[it] = range }
-        end
       end
     end
   end
