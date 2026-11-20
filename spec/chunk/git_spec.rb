@@ -52,6 +52,16 @@ RSpec.describe Chunk::Git do
       expect { reader.diff('main', " \t") }.to raise_error(Chunk::Error, /ref/)
     end
 
+    # A shell with LANG=C makes Ruby tag the git output as US-ASCII. Git echoes the ref in its message.
+    it 'reports an unknown ref with letters outside ASCII when the shell locale is not UTF-8' do
+      original = Encoding.default_external
+      Encoding.default_external = Encoding::US_ASCII
+
+      expect { reader.diff('main', "caf\u00e9") }.to raise_error(Chunk::Error, /caf\u00e9/)
+    ensure
+      Encoding.default_external = original
+    end
+
     it 'does not read a ref as a git option' do
       target = File.join(repo, 'written-by-option.txt')
 

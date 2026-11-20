@@ -33,9 +33,12 @@ module Chunk
 
     def run(*)
       out, err, status = Open3.capture3('git', '-C', @repo_path, *)
-      raise Error, err.strip unless status.success?
+      raise Error, utf8(err).strip unless status.success?
 
-      out.force_encoding(Encoding::UTF_8).scrub
+      utf8(out)
     end
+
+    # Git output has no encoding tag, and Ruby uses the shell locale. Each byte that is not UTF-8 becomes U+FFFD.
+    def utf8(text) = text.force_encoding(Encoding::UTF_8).scrub
   end
 end
