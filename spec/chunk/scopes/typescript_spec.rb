@@ -39,10 +39,40 @@ RSpec.describe Chunk::Scopes::Typescript do
     expect(described_class.new('.jsx').call(lines, 2)).to eq(1..3)
   end
 
-  it 'raises Unreadable for a syntax error' do
+  it 'gives the function for a line in a function stored on module.exports' do
+    lines = "module.exports.f = function () {\n  g();\n};\n".lines
+
+    expect(described_class.new('.js').call(lines, 2)).to eq(1..3)
+  end
+
+  it 'counts the JSDoc comment above a function as part of the function' do
+    lines = "/**\n * Adds one.\n */\nfunction add(a) {\n  return a + 1;\n}\n".lines
+
+    expect(finder.call(lines, 2)).to eq(1..6)
+  end
+
+  # The dispatcher puts the file path in front of the message, so the message has no file name.
+  it 'raises Unreadable with the syntax error, with no file name in front' do
     broken = File.read(File.join(__dir__, '../../fixtures/ts/broken.ts')).lines
 
-    expect { finder.call(broken, 1) }.to raise_error(Chunk::Scopes::Unreadable, /expected/)
+    expect { finder.call(broken, 1) }.to raise_error(Chunk::Scopes::Unreadable, /\A'[:}]' expected/)
+  end
+
+  it 'raises Unreadable with the Node error when the typescript package is not installed' do
+    script = File.join(make_dir, 'ts_scopes.mjs')
+    FileUtils.cp(described_class::SCRIPT, script)
+    stub_const("#{described_class}::SCRIPT", script)
+
+    expect { finder.call(sample, 9) }
+      .to raise_error(Chunk::Scopes::Unreadable, /\AError \[ERR_MODULE_NOT_FOUND\]: Cannot find package 'typescript'/)
+  end
+
+  it 'raises Unreadable when the script prints text that is not JSON' do
+    script = File.join(make_dir, 'ts_scopes.mjs')
+    File.write(script, "console.log('not json');\n")
+    stub_const("#{described_class}::SCRIPT", script)
+
+    expect { finder.call(sample, 9) }.to raise_error(Chunk::Scopes::Unreadable, /ts_scopes\.mjs: /)
   end
 
   it 'raises Unreadable when node is not installed' do

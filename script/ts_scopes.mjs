@@ -13,9 +13,10 @@ const sf = ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, true, k
 /** @type {readonly ts.Diagnostic[]} */
 const diagnostics = /** @type {any} */ (sf).parseDiagnostics ??
   ts.transpileModule(source, { reportDiagnostics: true, fileName }).diagnostics ?? [];
+// Exit code, not process.exit(), so Node writes all of stderr before it stops.
 if (diagnostics.length) {
-  for (const d of diagnostics) console.error(`${fileName}: ${ts.flattenDiagnosticMessageText(d.messageText, "\n")}`);
-  process.exit(1);
+  for (const d of diagnostics) console.error(ts.flattenDiagnosticMessageText(d.messageText, "\n"));
+  process.exitCode = 1;
 }
 
 /** @param {ts.Node} n @returns {"function" | "class" | undefined} */
@@ -25,8 +26,11 @@ const kindOf = (n) => {
       ts.isGetAccessorDeclaration(n) || ts.isSetAccessorDeclaration(n)) return "function";
   const p = n.parent;
   if ((ts.isFunctionExpression(n) || ts.isArrowFunction(n)) &&
-      (ts.isVariableDeclaration(p) || ts.isPropertyDeclaration(p) || ts.isPropertyAssignment(p)) &&
-      p.initializer === n && p.name) return "function";
+      (((ts.isVariableDeclaration(p) || ts.isPropertyDeclaration(p) || ts.isPropertyAssignment(p)) &&
+        p.initializer === n && p.name) ||
+       // module.exports.f = function () {}, or x = () => {}
+       (ts.isBinaryExpression(p) && p.operatorToken.kind === ts.SyntaxKind.EqualsToken && p.right === n)))
+    return "function";
 };
 
 /** @param {number} pos */
@@ -36,8 +40,11 @@ const out = [];
 /** @param {ts.Node} n */
 const visit = (n) => {
   const kind = kindOf(n);
-  if (kind) out.push({ kind, start: line(n.getStart(sf)), end: line(n.getEnd()) });
+  // getStart with true includes the JSDoc comment above the node.
+  if (kind) out.push({ kind, start: line(n.getStart(sf, true)), end: line(n.getEnd()) });
   ts.forEachChild(n, visit);
 };
-visit(sf);
-console.log(JSON.stringify(out));
+if (!diagnostics.length) {
+  visit(sf);
+  console.log(JSON.stringify(out));
+}

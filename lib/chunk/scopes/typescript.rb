@@ -37,13 +37,19 @@ module Chunk
       end
 
       def scopes(lines)
+        # shortcut: no timeout, so a hung node stops chunk; add one if that happens.
         out, err, status = Open3.capture3('node', SCRIPT, "file#{@extension}", stdin_data: lines.join)
-        raise Unreadable, utf8(err).lines.first.to_s.strip unless status.success?
+        raise Unreadable, message(utf8(err)) unless status.success?
 
         JSON.parse(utf8(out))
       rescue SystemCallError => e
         raise Unreadable, "node: #{e.message}"
+      rescue JSON::ParserError => e
+        raise Unreadable, "#{SCRIPT}: #{e.message}"
       end
+
+      # A Node error has a source location first, then the "Error ..." line.
+      def message(err) = (err.lines.find { it.start_with?('Error') } || err.lines.first).to_s.strip
 
       # Process output has no encoding tag, and Ruby uses the shell locale.
       def utf8(text) = text.force_encoding(Encoding::UTF_8).scrub
