@@ -20,6 +20,12 @@ module Chunk
       run('diff', '--no-color', '--no-ext-diff', '--no-textconv', '--end-of-options', "#{base}...#{head}")
     end
 
+    # @return [String] path of the top directory of the repository
+    # @raise [Chunk::Error] when the path is not in a git repository
+    def toplevel
+      run('rev-parse', '--show-toplevel').strip
+    end
+
     private
 
     def run(*)
