@@ -83,4 +83,15 @@ RSpec.describe Chunk::Scopes::Ruby do
     2.times { |i| finder.call(lines, i + 1) }
     expect(Prism).to have_received(:parse).once
   end
+
+  # The hunk builder calls with the old file (deleted lines) and the new file (added lines) in turn.
+  it 'parses the old file and the new file once each, when calls take turns' do
+    old_lines = source.lines
+    new_lines = source.lines
+    allow(Prism).to receive(:parse).and_call_original
+
+    3.times { [old_lines, new_lines].each { finder.call(it, 11) } }
+
+    expect(Prism).to have_received(:parse).twice
+  end
 end

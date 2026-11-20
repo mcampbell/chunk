@@ -6,6 +6,8 @@ module Chunk
   module Scopes
     # Finder: the innermost method, else the innermost class or module, that holds the line.
     class Ruby
+      include Cached
+
       DEFS = [Prism::DefNode].freeze
       CONTAINERS = [Prism::ClassNode, Prism::ModuleNode, Prism::SingletonClassNode].freeze
 
@@ -21,15 +23,13 @@ module Chunk
 
       private
 
-      # The hunk builder calls once for each changed line with the same array, so parse once.
       def parse(lines)
-        return @root if @lines.equal?(lines)
+        cached(lines) do
+          result = Prism.parse(lines.join)
+          raise Unreadable, result.errors.first.message if result.errors.any?
 
-        result = Prism.parse(lines.join)
-        raise Unreadable, result.errors.first.message if result.errors.any?
-
-        @lines = lines
-        @root = result.value
+          result.value
+        end
       end
 
       def innermost(node, line_number, types)
