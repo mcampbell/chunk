@@ -59,9 +59,14 @@ RSpec.describe Chunk::Cli do
     expect(opened).to be_empty
   end
 
-  it 'fails with the git message for a path that is not a repository' do
-    expect(run_cli('--repo', File.join(output_dir, 'missing'), 'main', 'feature/x')).to eq(1)
-    expect(err.string).to start_with('chunk: ')
+  it 'fails with the git message for a directory that is not a repository' do
+    expect(run_cli('--repo', make_dir, 'main', 'feature/x')).to eq(1)
+    expect(err.string).to start_with('chunk: ').and include('not a git repository')
+  end
+
+  it 'fails with the git message for a directory that does not exist' do
+    expect(run_cli('--repo', File.join(make_dir, 'missing'), 'main', 'feature/x')).to eq(1)
+    expect(err.string).to start_with('chunk: ').and include('cannot change to')
   end
 
   context 'when the output directory cannot be made' do
@@ -79,7 +84,7 @@ RSpec.describe Chunk::Cli do
 
   it 'fails with a short message and no stack trace when git is not installed' do
     path = ENV.fetch('PATH')
-    ENV['PATH'] = Dir.mktmpdir('no-git')
+    ENV['PATH'] = make_dir
 
     expect(run_cli('--repo', repo, 'main', 'feature/x')).to eq(1)
     expect(err.string).to match(/\Achunk: .*git/)

@@ -13,9 +13,14 @@ module GitRepoHelper
     'GIT_COMMITTER_NAME' => 'spec', 'GIT_COMMITTER_EMAIL' => 'spec@example.com'
   }.freeze
 
-  def make_repo
+  def make_dir
     dir = Dir.mktmpdir('chunk-spec')
     @made_repos = [*@made_repos, dir]
+    dir
+  end
+
+  def make_repo
+    dir = make_dir
     git(dir, 'init', '-q', '-b', 'main')
     dir
   end
