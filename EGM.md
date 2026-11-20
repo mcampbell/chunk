@@ -16,7 +16,7 @@ Status (2026-11-20): PR 1 of 5. The page shows the git default context (3 lines)
 
 ## Interface
 
-- `bin/chunk [--repo PATH] BASE HEAD` - writes `~/tmp/chunk/<repo>-<base>-<head>.html`, prints the path, and opens the file with `open`. `--repo` defaults to the current directory. Exit status: 0 success (also when `open` fails), 1 git error, 2 wrong usage.
+- `bin/chunk [--repo PATH] BASE HEAD` - writes `~/tmp/chunk/<repo>-<base>-<head>.html`, prints the path, and opens the file with `open`. `--repo` defaults to the current directory. Exit status: 0 success (also when `open` fails), 1 error (git, or the file system), 2 wrong usage. See `README.md`.
 - `CHUNK_OUTPUT_DIR` - the directory for the page, in place of `~/tmp/chunk`.
 
 ## Invariants
