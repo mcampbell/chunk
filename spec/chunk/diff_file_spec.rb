@@ -101,6 +101,31 @@ RSpec.describe Chunk::DiffFile do
       expect(file.path).to eq('f.txt')
     end
 
+    # Git quotes a name with letters outside ASCII, and adds a tab after a name with a space.
+    it 'names a file with letters outside ASCII' do
+      file = parse_change("caf\u00e9.rb") { commit_file(repo, "caf\u00e9.rb", "changed\n") }.first
+
+      expect(file.path).to eq("caf\u00e9.rb")
+    end
+
+    it 'names a file with a space' do
+      file = parse_change('a b.rb') { commit_file(repo, 'a b.rb', "changed\n") }.first
+
+      expect(file.path).to eq('a b.rb')
+    end
+
+    it 'names a file with a quote and a backslash' do
+      file = parse_change('q"\\.rb') { commit_file(repo, 'q"\\.rb', "changed\n") }.first
+
+      expect(file.path).to eq('q"\\.rb')
+    end
+
+    it 'names a binary file with letters outside ASCII' do
+      file = parse_change("caf\u00e9.bin", base: "a\0b\n") { commit_file(repo, "caf\u00e9.bin", "a\0c\n") }.first
+
+      expect(file.path).to eq("caf\u00e9.bin")
+    end
+
     it 'names the new path of a rename with a change' do
       file = parse_change do
         git(repo, 'mv', 'f.txt', 'g.rb')

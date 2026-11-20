@@ -45,11 +45,31 @@ module Chunk
     end
     private_class_method :build_rows, :build_row
 
+    # Git C-style escapes in a quoted name (core.quotePath).
+    ESCAPES = { 'a' => "\a", 'b' => "\b", 't' => "\t", 'n' => "\n", 'v' => "\v", 'f' => "\f", 'r' => "\r" }.freeze
+
     # @return [String] the head path of the file, or the base path of a deleted file
     def path
-      line = header.find { it.start_with?('+++ b/') } || header.find { it.start_with?('--- a/') }
-      line ? line[6..].chomp : header.first[%r{ b/(.*)$}, 1]
+      # The a/ and b/ prefixes come from Chunk::Git#diff_args. /dev/null has neither.
+      line = header.find { it.match?(%r{\A\+\+\+ "?b/}) } || header.find { it.match?(%r{\A--- "?a/}) }
+      # Git adds a tab after a name with a space.
+      name = line ? line[4..].chomp.delete_suffix("\t") : header.first.chomp[%r{ ("b/.*"|b/.*)\z}, 1].to_s
+      unquote(name).sub(%r{\A[ab]/}, '')
     end
+
+    private
+
+    def unquote(name)
+      return name unless name.start_with?('"')
+
+      bytes = name[1..-2].b.gsub(/\\([0-7]{3}|.)/n) do
+        code = Regexp.last_match(1)
+        code.size == 3 ? code.to_i(8).chr : ESCAPES.fetch(code, code)
+      end
+      bytes.force_encoding(Encoding::UTF_8).scrub
+    end
+
+    public
 
     # @return [Array<String>] the lines of the merge-base file
     def old_lines = rows.reject { |row| row.kind == :added }.map(&:text)
